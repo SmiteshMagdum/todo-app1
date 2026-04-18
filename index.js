@@ -27,22 +27,29 @@ app.post("/signin",function(req,res){
     const username = req.body.username;
     const password = req.body.password;
       
-     if(users.username===username && users.password===password)
-     {
-        res.json({
-            message:"signin"
-        })
-     }else{
-        res.json({
-            message: "wrong credentials"
-        })
+    for(let i = 0; i<username.length; i++){
+     if(users[i].username===username && users[i].password===password){
+       
      }
-
-    const  token = jwt.sign({
-        username: users.username
+      if(!username){
+        res.json({
+            message:"wrong credentials"
+        })
+        return
+      }else{
+        const  token = jwt.sign({
+        username: users[i].username
     },secretKey);
+    res.header("jwt", token);
 
-      
+        res.header("random", "harkirat");
+
+        res.json({
+            token: token
+        })
+    }
+} 
 })
+
 
 app.listen(3000);
