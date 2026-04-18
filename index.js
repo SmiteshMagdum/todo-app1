@@ -33,17 +33,13 @@ app.post("/signin",function(req,res){
      }
       if(!username){
         res.json({
-            message:"wrong credentials"
+            message:"wrong code"
         })
         return
       }else{
         const  token = jwt.sign({
         username: users[i].username
     },secretKey);
-    res.header("jwt", token);
-
-        res.header("random", "harkirat");
-
         res.json({
             token: token
         })
