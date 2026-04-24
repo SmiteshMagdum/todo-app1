@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Taskly — Todo App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d10;
+      --surface: #16161c;
+      --surface2: #1e1e27;
+      --border: #2a2a38;
+      --accent: #7c6aff;
+      --accent2: #ff6a8a;
+      --text: #e8e8f0;
+      --text-muted: #7a7a96;
+      --success: #4ade80;
+      --danger: #ff5252;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+    }
+
+    body {
+      background-image:
+        radial-gradient(ellipse 60% 50% at 20% 0%, rgba(124,106,255,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 90%, rgba(255,106,138,0.08) 0%, transparent 60%);
+      min-height: 100vh;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Layout ── */
+    #app { display: flex; min-height: 100vh; }
+
+    /* ── Auth Screen ── */
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 24px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 44px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow);
+    }
+
+    .auth-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .auth-tagline {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .tab-group {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"], textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 11px 20px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-primary:hover { background: #6a59e8; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { color: var(--text); border-color: #3a3a50; }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid transparent;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .btn-danger:hover { background: rgba(255,82,82,0.1); }
+
+    .btn-icon {
+      background: transparent;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border: 1px solid transparent;
+    }
+
+    .btn-icon:hover { color: var(--accent); background: rgba(124,106,255,0.08); }
+
+    .error-msg {
+      background: rgba(255,82,82,0.1);
+      border: 1px solid rgba(255,82,82,0.3);
+      color: var(--danger);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+
+    /* ── Main App ── */
+    #main-app {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+    }
+
+    #main-app.visible {
+      display: flex;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(22,22,28,0.8);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 6px 14px 6px 8px;
+    }
+
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      color: white;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover { color: var(--danger); border-color: rgba(255,82,82,0.4); }
+
+    /* ── Main Content ── */
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      width: 100%;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-num.accent { color: var(--accent); }
+    .stat-num.success { color: var(--success); }
+    .stat-num.muted { color: var(--text-muted); }
+
+    .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+    /* ── Add Todo ── */
+    .add-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 28px;
+    }
+
+    .add-section h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .add-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .add-inputs { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+    .add-row .btn-primary {
+      width: auto;
+      padding: 11px 22px;
+      white-space: nowrap;
+      align-self: flex-start;
+    }
+
+    /* ── Filters ── */
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 50px;
+      padding: 7px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* ── Todo List ── */
+    #todo-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .todo-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: all 0.2s;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .todo-item:hover { border-color: #3a3a50; }
+    .todo-item.completed { opacity: 0.55; }
+
+    .todo-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .todo-check:hover { border-color: var(--accent); }
+    .todo-check.checked { background: var(--success); border-color: var(--success); }
+
+    .todo-check.checked::after {
+      content: '✓';
+      font-size: 12px;
+      color: #000;
+      font-weight: 700;
+    }
+
+    .todo-body { flex: 1; min-width: 0; }
+
+    .todo-title {
+      font-weight: 500;
+      font-size: 15px;
+      margin-bottom: 3px;
+      word-break: break-word;
+    }
+
+    .todo-item.completed .todo-title { text-decoration: line-through; color: var(--text-muted); }
+
+    .todo-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .todo-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .todo-actions { display: flex; gap: 4px; align-items: center; }
+
+    /* ── Edit Inline ── */
+    .edit-form { display: none; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .edit-form.show { display: flex; }
+
+    .edit-form-btns { display: flex; gap: 8px; }
+
+    .btn-save {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-save:hover { background: #6a59e8; }
+
+    .btn-cancel-edit {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel-edit:hover { color: var(--text); }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      display: none;
+    }
+
+    .empty-state.show { display: block; }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    .empty-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    .empty-sub { font-size: 14px; color: var(--text-muted); }
+
+    /* ── Toast ── */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 9999;
+    }
+
+    .toast {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      font-size: 14px;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease both;
+      max-width: 320px;
+    }
+
+    .toast.success { border-left: 3px solid var(--success); }
+    .toast.error { border-left: 3px solid var(--danger); }
+
+    /* ── Loading Spinner ── */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .loading .spinner { display: block; }
+    .loading .btn-label { display: none; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 560px) {
+      header { padding: 14px 18px; }
+      main { padding: 24px 16px; }
+      .add-row { flex-direction: column; }
+      .add-row .btn-primary { width: 100%; }
+      .auth-card { padding: 28px 24px; }
+      .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── AUTH SCREEN ── -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">Taskly</div>
+      <div class="auth-tagline">Get things done. Simply.</div>
+
+      <div class="tab-group">
+        <button class="tab-btn active" onclick="switchTab('signin')">Sign In</button>
+        <button class="tab-btn" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+
+      <div id="auth-error" class="error-msg"></div>
+
+      <!-- Sign In -->
+      <div id="signin-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signin-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signin-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') handleSignin()" />
+        </div>
+        <button class="btn btn-primary" id="signin-btn" onclick="handleSignin()">
+          <span class="btn-label">Sign In</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+
+      <!-- Sign Up -->
+      <div id="signup-form" style="display:none">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="signup-username" placeholder="cooluser99" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signup-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signup-password" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter') handleSignup()" />
+        </div>
+        <button class="btn btn-primary" id="signup-btn" onclick="handleSignup()">
+          <span class="btn-label">Create Account</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN APP ── -->
+  <div id="main-app">
+    <header>
+      <div class="header-logo">Taskly</div>
+      <div class="header-user">
+        <div class="user-badge">
+          <div class="user-avatar" id="user-avatar-initial">U</div>
+          <span class="user-name" id="header-username">User</span>
+        </div>
+        <button class="btn-logout" onclick="handleLogout()">Logout</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num accent" id="stat-total">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num success" id="stat-done">0</div>
+          <div class="stat-label">Done</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num muted" id="stat-pending">0</div>
+          <div class="stat-label">Pending</div>
+        </div>
+      </div>
+
+      <!-- Add Todo -->
+      <div class="add-section">
+        <h2>+ New Task</h2>
+        <div id="add-error" class="error-msg"></div>
+        <div class="add-row">
+          <div class="add-inputs">
+            <input type="text" id="todo-title" placeholder="What needs to be done?" onkeydown="if(event.key==='Enter') handleAddTodo()" />
+            <textarea id="todo-desc" rows="2" placeholder="Add a description (optional)…"></textarea>
+          </div>
+          <button class="btn btn-primary" id="add-btn" onclick="handleAddTodo()">
+            <span class="btn-label">Add Task</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter -->
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+        <button class="filter-btn" onclick="setFilter('pending', this)">Pending</button>
+        <button class="filter-btn" onclick="setFilter('completed', this)">Completed</button>
+      </div>
+
+      <!-- Todo List -->
+      <div id="todo-list"></div>
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">No tasks here</div>
+        <div class="empty-sub">Add a task above to get started</div>
+      </div>
+    </main>
+  </div>
+
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<script>
+  const API = 'http://localhost:3000/api';
+  let token = localStorage.getItem('taskly_token');
+  let currentUser = null;
+  let allTodos = [];
+  let currentFilter = 'all';
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    if (token) {
+      fetchMe();
+    }
+  });
+
+  async function fetchMe() {
+    try {
+      const res = await fetch(`${API}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error();
+      currentUser = await res.json();
+      showApp();
+    } catch {
+      token = null;
+      localStorage.removeItem('taskly_token');
+    }
+  }
+
+  function showApp() {
+    document.getElementById('auth-screen').style.display = 'none';
+    const app = document.getElementById('main-app');
+    app.classList.add('visible');
+    document.getElementById('header-username').textContent = currentUser.username;
+    document.getElementById('user-avatar-initial').textContent = currentUser.username[0].toUpperCase();
+    loadTodos();
+  }
+
+  // ── Auth ─────────────────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (tab === 'signin' && i === 0) || (tab === 'signup' && i === 1));
+    });
+    document.getElementById('signin-form').style.display = tab === 'signin' ? 'block' : 'none';
+    document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+    hideAuthError();
+  }
+
+  function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  function hideAuthError() {
+    document.getElementById('auth-error').classList.remove('show');
+  }
+
+  async function handleSignin() {
+    const email = document.getElementById('signin-email').value.trim();
+    const password = document.getElementById('signin-password').value;
+    if (!email || !password) return showAuthError('Please fill in all fields.');
+    hideAuthError();
+
+    const btn = document.getElementById('signin-btn');
+    setLoading(btn, true);
+
+    try {
+      const res = await fetch(`${API}/auth/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) return showAuthError(data.error || 'Sign in failed');
+      token = data.token;
+      currentUser = data.user;
+      localStorage.setItem('taskly_token', token);
+      showApp();
+      toast('Welcome back, ' + currentUser.username + '!', 'success');
+    } catch {
+      showAuthError('Server unreachable. Is the backend running?');
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+  async function handleSignup() {
+    const username = document.getElementById('signup-username').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    if (!username || !email || !password) return showAuthError('Please fill in all fields.');
+    hideAuthError();
+
+    const btn = document.getElementById('signup-btn');
+    setLoading(btn, true);
+
+    try {
+      const res = await fetch(`${API}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) return showAuthError(data.error || 'Sign up failed');
+      token = data.token;
+      currentUser = data.user;
+      localStorage.setItem('taskly_token', token);
+      showApp();
+      toast('Account created! Welcome, ' + currentUser.username + '!', 'success');
+    } catch {
+      showAuthError('Server unreachable. Is the backend running?');
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+  function handleLogout() {
+    token = null;
+    currentUser = null;
+    allTodos = [];
+    localStorage.removeItem('taskly_token');
+    document.getElementById('main-app').classList.remove('visible');
+    document.getElementById('main-app').style.display = '';
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('signin-email').value = '';
+    document.getElementById('signin-password').value = '';
+    toast('Logged out successfully');
+  }
+
+  // ── Todos ─────────────────────────────────────────────────────────────────────
+  async function loadTodos() {
+    try {
+      const res = await fetch(`${API}/todos`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      allTodos = await res.json();
+      renderTodos();
+    } catch {
+      toast('Failed to load todos', 'error');
+    }
+  }
+
+  async function handleAddTodo() {
+    const title = document.getElementById('todo-title').value.trim();
+    const description = document.getElementById('todo-desc').value.trim();
+    if (!title) {
+      const err = document.getElementById('add-error');
+      err.textContent = 'Title is required.';
+      err.classList.add('show');
+      return;
+    }
+    document.getElementById('add-error').classList.remove('show');
+
+    const btn = document.getElementById('add-btn');
+    setLoading(btn, true);
+
+    try {
+      const res = await fetch(`${API}/todos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ title, description })
+      });
+      const todo = await res.json();
+      if (!res.ok) throw new Error(todo.error);
+      allTodos.unshift(todo);
+      document.getElementById('todo-title').value = '';
+      document.getElementById('todo-desc').value = '';
+      renderTodos();
+      toast('Task added!', 'success');
+    } catch (e) {
+      toast(e.message || 'Failed to add task', 'error');
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+  async function toggleComplete(id) {
+    const todo = allTodos.find(t => t.id === id);
+    if (!todo) return;
+    try {
+      const res = await fetch(`${API}/todos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ completed: !todo.completed })
+      });
+      const updated = await res.json();
+      const idx = allTodos.findIndex(t => t.id === id);
+      allTodos[idx] = updated;
+      renderTodos();
+    } catch {
+      toast('Failed to update task', 'error');
+    }
+  }
+
+  async function deleteTodo(id) {
+    if (!confirm('Delete this task?')) return;
+    try {
+      const res = await fetch(`${API}/todos/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error();
+      allTodos = allTodos.filter(t => t.id !== id);
+      renderTodos();
+      toast('Task deleted');
+    } catch {
+      toast('Failed to delete task', 'error');
+    }
+  }
+
+  function showEditForm(id) {
+    document.querySelectorAll('.edit-form').forEach(f => f.classList.remove('show'));
+    const form = document.getElementById(`edit-form-${id}`);
+    if (form) form.classList.add('show');
+  }
+
+  function hideEditForm(id) {
+    const form = document.getElementById(`edit-form-${id}`);
+    if (form) form.classList.remove('show');
+  }
+
+  async function saveEdit(id) {
+    const titleEl = document.getElementById(`edit-title-${id}`);
+    const descEl = document.getElementById(`edit-desc-${id}`);
+    const title = titleEl.value.trim();
+    if (!title) return toast('Title cannot be empty', 'error');
+
+    try {
+      const res = await fetch(`${API}/todos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ title, description: descEl.value.trim() })
+      });
+      const updated = await res.json();
+      const idx = allTodos.findIndex(t => t.id === id);
+      allTodos[idx] = updated;
+      renderTodos();
+      toast('Task updated!', 'success');
+    } catch {
+      toast('Failed to update task', 'error');
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────────
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTodos();
+  }
+
+  function renderTodos() {
+    const list = document.getElementById('todo-list');
+    const empty = document.getElementById('empty-state');
+
+    let filtered = allTodos;
+    if (currentFilter === 'pending') filtered = allTodos.filter(t => !t.completed);
+    if (currentFilter === 'completed') filtered = allTodos.filter(t => t.completed);
+
+    const total = allTodos.length;
+    const done = allTodos.filter(t => t.completed).length;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-done').textContent = done;
+    document.getElementById('stat-pending').textContent = total - done;
+
+    if (filtered.length === 0) {
+      list.innerHTML = '';
+      empty.classList.add('show');
+      return;
+    }
+    empty.classList.remove('show');
+
+    list.innerHTML = filtered.map(todo => `
+      <div class="todo-item ${todo.completed ? 'completed' : ''}" id="todo-${todo.id}">
+        <div class="todo-check ${todo.completed ? 'checked' : ''}" onclick="toggleComplete('${todo.id}')"></div>
+        <div class="todo-body">
+          <div class="todo-title">${escHtml(todo.title)}</div>
+          ${todo.description ? `<div class="todo-desc">${escHtml(todo.description)}</div>` : ''}
+          <div class="todo-meta">${formatDate(todo.createdAt)}</div>
+          <div class="edit-form" id="edit-form-${todo.id}">
+            <input type="text" id="edit-title-${todo.id}" value="${escAttr(todo.title)}" placeholder="Title" />
+            <textarea id="edit-desc-${todo.id}" rows="2" placeholder="Description">${escHtml(todo.description || '')}</textarea>
+            <div class="edit-form-btns">
+              <button class="btn-save" onclick="saveEdit('${todo.id}')">Save</button>
+              <button class="btn-cancel-edit" onclick="hideEditForm('${todo.id}')">Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="todo-actions">
+          <button class="btn btn-icon" onclick="showEditForm('${todo.id}')" title="Edit">✏️</button>
+          <button class="btn btn-danger" onclick="deleteTodo('${todo.id}')" title="Delete">🗑</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Utilities ─────────────────────────────────────────────────────────────────
+  function setLoading(btn, state) {
+    btn.classList.toggle('loading', state);
+    btn.disabled = state;
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function escAttr(str) {
+    return (str || '').replace(/"/g, '&quot;');
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function toast(msg, type = '') {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+</script>
+</body>
+</html>
